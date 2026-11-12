@@ -224,7 +224,10 @@ function decodeBody(ch, e) {
           el("div.ex-py", py(p)),
           el("div.ex-en", en)))));
     }
-    sec.append(el("p.source", "Examples from Wiktionary"));
+    sec.append(el("p.source", e.xo
+      ? (e.co ? "Phrases from Wiktionary. Sentences written for this site by an AI model and not yet checked by a Chinese speaker."
+        : "Sentences written for this site by an AI model and not yet checked by a Chinese speaker.")
+      : "Examples from Wiktionary"));
     body.append(sec);
   }
 

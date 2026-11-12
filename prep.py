@@ -324,6 +324,8 @@ for d in (SENT_BY, PHRASE_BY, SENT_HAS):
         d[k].sort()
 print(n_sent, "sentences and", n_phrase, "phrases from Wiktionary")
 
+OWN_F = ROOT / "src/content/own_sentences.json"
+OWN = json.loads(OWN_F.read_text(encoding="utf8")) if OWN_F.exists() else {}
 used_text = collections.Counter()
 
 
@@ -504,6 +506,9 @@ for n, c in enumerate(CHARS):
         ex = examples(c, words)
         if ex:
             e["x"] = ex
+        elif c in OWN:              # no Wiktionary sentence: ones written for this site (see check_own.py)
+            e["x"] = OWN[c]
+            e["xo"] = 1
         co = partners(c, words)
         if co:
             e["co"] = co
