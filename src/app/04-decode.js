@@ -208,25 +208,17 @@ function decodeBody(ch, e) {
   }
 
   // ---- what it goes with
-  if (e.co || e.x) {
-    const sec = el("section.sec", el("p.eyebrow", "How it is used"));
-    if (e.co) {
-      sec.append(el("h3", "Often found together"),
-        el("ul.pairs", e.co.map(([t, p, en]) => el("li.pair",
-          el("span.pair-zh", tappable(t, ch), listenText(t)),
-          el("span.pair-info", py(p)),
-          el("span.pair-en", en)))));
-    }
-    if (e.x) {
-      sec.append(el("h3", "In a sentence"),
+  if (e.x) {
+    const sec = el("section.sec", el("p.eyebrow", "In a sentence"));
+    {
+      sec.append(
         el("ul.examples", e.x.map(([s, p, en]) => el("li.example",
           el("div.ex-zh", tappable(s, ch), listenText(s)),
           el("div.ex-py", py(p)),
           el("div.ex-en", en)))));
     }
     sec.append(el("p.source", e.xo
-      ? (e.co ? "Phrases from Wiktionary. Sentences written for this site by an AI model and not yet checked by a Chinese speaker."
-        : "Sentences written for this site by an AI model and not yet checked by a Chinese speaker.")
+      ? "Sentences written for this site by an AI model and not yet checked by a Chinese speaker."
       : "Examples from Wiktionary"));
     body.append(sec);
   }

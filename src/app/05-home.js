@@ -1,6 +1,4 @@
 // ---------------------------------------------------------------- home: type, paste or draw
-const SAMPLE = "我想喝一杯清水。";
-const TRY = ["清", "好", "听", "想", "明", "休", "妈", "森", "饭", "国"];
 
 function lookUp(text) {
   const chars = [...text].filter((c) => HAN_RE.test(c));
@@ -24,21 +22,6 @@ function homeView() {
       el("span.dim.small", "One character, a word or a whole sentence")));
   input.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); lookUp(input.value); } });
 
-  const sample = el("div.sample",
-    el("p.field-label", "Or start from this sentence"),
-    el("div.strip-row", [...SAMPLE].map((c) => (known(c)
-      ? el("a.tile", { href: hashOf(c), onclick: () => { state.text = SAMPLE; save(); } }, zh(c))
-      : el("span.tile.plain", c)))),
-    el("p.dim.small", "I'd like a glass of water. Tap any character."));
-
-  const tryRow = el("div.try",
-    el("span.field-label", "Good ones to try"),
-    el("div.try-row", TRY.filter(known).map((c) => el("a.guess", { href: hashOf(c), onclick: () => { state.text = ""; save(); } }, zh(c)))));
-  const recent = (state.recent || []).filter(known);
-  const recentRow = recent.length ? el("div.try",
-    el("span.field-label", "You looked at"),
-    el("div.try-row", recent.map((c) => el("a.guess", { href: hashOf(c) }, zh(c))))) : null;
-
   const pad = el("div.draw-side", el("p.field-label", "Or draw it"), drawPad((ch) => { state.text = ""; save(); location.hash = hashOf(ch); }));
 
   const hero = el("section.hero", el("div.wrap.hero-in",
@@ -46,7 +29,7 @@ function homeView() {
       el("p.eyebrow", "Character decoder"),
       el("h1", "Take any character ", el("span.red", "apart.")),
       el("p.lede", "Paste a character or draw one. See which part carries the meaning, which part carries the sound, the words it lives in, and why it looks the way it does."),
-      form, sample, tryRow, recentRow),
+      form),
     pad));
 
   const what = el("section.band#what", el("div.wrap",
@@ -56,7 +39,7 @@ function homeView() {
       el("li", el("h3", el("i.dot.r-meaning"), "The meaning part"), el("p", "Usually the radical. It tells you what kind of thing the character is about: water, speech, a hand, the heart.")),
       el("li", el("h3", el("i.dot.r-sound"), "The sound part"), el("p", "The other half hints at how to say it. A four-bar meter shows how far you can trust the hint today.")),
       el("li", el("h3", "Words"), el("p", "The everyday words the character appears in, most used first, with pinyin and HSK level.")),
-      el("li", el("h3", "Company it keeps"), el("p", "Short phrases that show what it goes with, and whole sentences that show it at work.")),
+      el("li", el("h3", "Sentences"), el("p", "Short example sentences that show it at work, with pinyin and a translation.")),
       el("li", el("h3", "Where it comes from"), el("p", "What the people who designed it were picturing, and a line to remember it by.")))));
 
   const dumpDate = INDEX.dump || "";

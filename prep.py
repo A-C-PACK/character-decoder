@@ -509,9 +509,6 @@ for n, c in enumerate(CHARS):
         elif c in OWN:              # no Wiktionary sentence: ones written for this site (see check_own.py)
             e["x"] = OWN[c]
             e["xo"] = 1
-        co = partners(c, words)
-        if co:
-            e["co"] = co
     if main and plain(main)[0] in TONES:
         e["tt"] = plain(main)[0]
     ENTRIES[c] = e
