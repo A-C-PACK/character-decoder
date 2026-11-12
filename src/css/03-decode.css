@@ -70,6 +70,30 @@ a.part-glyph:hover { background: color-mix(in srgb, var(--rc) 24%, var(--bg)); }
 .sib .zh { font-size: 1.25rem; }
 .sib .py { font-size: 0.82rem; color: var(--muted); }
 .part-links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.88rem; }
+/* a part's own parts, hung underneath it like replies in a thread */
+.thread { grid-column: 1 / -1; position: relative; display: flex; flex-direction: column; gap: 10px; margin: 2px 0 0 37px; padding-left: 22px;
+  border-left: 2px solid var(--line); }
+.thread-head { padding-top: 6px; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.thread-head .zh { color: var(--rc); font-size: 1.35em; letter-spacing: 0; margin-right: 4px; }
+.thread-note { color: var(--muted); font-family: var(--f-read); font-size: 0.93rem; }
+.thread-note .zh { color: var(--ink); font-size: 1.1em; }
+.thread-list { display: flex; flex-direction: column; gap: 10px; }
+.kid { --rc: var(--c-other); position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 14px; align-items: center;
+  padding: 12px 14px; border-radius: 16px; background: var(--panel2); border: 1px solid var(--line); }
+.kid.r-meaning { --rc: var(--c-meaning); }
+.kid.r-sound { --rc: var(--c-sound); }
+.kid.r-iconic { --rc: var(--c-iconic); }
+.kid::before { content: ""; position: absolute; left: -24px; top: 50%; width: 23px; height: 2px; background: var(--line); }
+/* the thread line stops at the last reply */
+.kid:last-child::after { content: ""; position: absolute; left: -24px; top: calc(50% + 2px); bottom: -2px; width: 2px; background: var(--panel); }
+.kid-glyph { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; background: color-mix(in srgb, var(--rc) 13%, var(--bg));
+  color: var(--rc); font-size: 1.8rem; line-height: 1; }
+a.kid-glyph:hover { background: color-mix(in srgb, var(--rc) 24%, var(--bg)); }
+.kid-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kid-name { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 1.05rem; }
+.kid-name .py { color: var(--muted); }
+.kid .listen { width: 30px; height: 30px; }
+
 .rad-line { color: var(--muted); font-family: var(--f-read); font-size: 0.93rem; }
 .rad-line .zh { color: var(--ink); font-size: 1.15em; }
 
@@ -120,6 +144,11 @@ a.part-glyph:hover { background: color-mix(in srgb, var(--rc) 24%, var(--bg)); }
 @media (max-width: 520px) {
   .part { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding: 14px; }
   .part-glyph { width: 56px; height: 56px; font-size: 2rem; border-radius: 14px; }
+  .thread { margin-left: 27px; padding-left: 16px; }
+  .kid { grid-template-columns: 44px minmax(0, 1fr); gap: 12px; padding: 10px 12px; }
+  .kid::before, .kid:last-child::after { left: -18px; }
+  .kid::before { width: 17px; }
+  .kid-glyph { width: 44px; height: 44px; font-size: 1.5rem; }
   .word { grid-template-columns: minmax(0, 1fr) auto; }
   .word-info { grid-column: 1 / -1; grid-row: 2; }
 }

@@ -63,7 +63,30 @@ function partCard(ch, e, comp, i) {
   if (comp.six) links.push(el("a.out", { href: `${SIXTY_URL}#r-${comp.six[0]}`, target: "_blank", rel: "noopener" }, `The ${comp.six[1]} radical in Sixty Radicals`));
   if (comp.fam) links.push(el("a.out", { href: `${SIXTY_URL}#f-${comp.fam}`, target: "_blank", rel: "noopener" }, "This sound family in Sixty Radicals"));
   if (links.length) body.append(el("div.part-links", links));
-  return el("li.part.r-" + role, { "data-part": i }, glyph, body);
+  const card = el("li.part.r-" + role, { "data-part": i }, glyph, body);
+  if (comp.in && comp.c !== ch) subParts(comp, card);
+  return card;
+}
+
+/** A part that is itself built from parts gets its own breakdown underneath, hung from it like replies in a thread. */
+function subParts(comp, card) {
+  entryOf(comp.c).then((sub) => {
+    const kids = ((sub && sub.c) || []).filter((x) => x.c && x.c !== comp.c);
+    if (kids.length < 2) return;
+    const kind = (KIND[sub.k] || KIND.other)[0].toLowerCase();
+    const note = plainOrigin(sub);
+    card.append(el("div.thread",
+      el("p.thread-head", zh(comp.c), ` is itself built from ${kids.length === 2 ? "two" : kids.length} parts: ${kind}`),
+      note ? el("p.thread-note", noteText(note)) : null,
+      el("ul.thread-list", kids.map((k) => {
+        const roles = k.r || [];
+        return el("li.kid.r-" + mainRole(roles),
+          k.in ? el("a.kid-glyph", { href: hashOf(k.c), title: `Decode ${k.c}` }, zh(k.c)) : el("span.kid-glyph", zh(k.c)),
+          el("div.kid-body",
+            el("span.role", roles.includes("sound") && roles.includes("meaning") ? "Sound + meaning part" : ROLE_NAME[roles[0]] || "Part"),
+            el("div.kid-name", k.g ? el("strong", k.g) : null, k.p ? py(k.p) : null, k.p ? listenSyllable(k.p, k.c) : null)));
+      }))));
+  }).catch(() => { /* the breakdown is extra; the card stands without it */ });
 }
 
 /** Chinese inside an English note becomes tappable. */
