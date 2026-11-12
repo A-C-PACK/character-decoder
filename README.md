@@ -6,7 +6,8 @@ shape comes from. A sister site of Sixty Radicals, the Mandarin Tone Trainer and
 
 ## Build
 
-    ~/tools/lessonvenv/bin/python prep.py     # cache/ -> build/   (about two minutes)
+    python3 wikt.py                           # once: Wiktionary extract -> cache/wikt_examples.json
+    ~/tools/lessonvenv/bin/python prep.py     # cache/ -> build/   (under a minute)
     python3 build.py                          # src/ + build/ -> docs/ and dist/artifact.html
     ~/tools/node/bin/node tools/shoot.js dm home c-6e05     # screenshots into shots/
     ~/tools/node/bin/node tools/try.js        # draws, pastes and opens 200 pages in a headless browser
@@ -24,14 +25,12 @@ served over http; opening `docs/index.html` from disk will not load any characte
 | stroke outlines and centre lines | Make Me a Hanzi `graphics.txt` | Arphic Public License |
 | dictionary radical, which strokes belong to which part | Make Me a Hanzi `dictionary.txt` (in ../radicals-site/cache) | LGPL |
 | word meanings | CC-CEDICT, through the Dong Chinese word dump | CC BY-SA 4.0 |
-| example sentences and translations | Tatoeba `cmn_sentences`, `eng_sentences`, `links` | CC BY 2.0 FR |
+| example sentences and phrases, with pinyin and translations | Wiktionary usage examples, from the kaikki.org extract `kaikki.org-dictionary-Chinese.jsonl` (run `python3 wikt.py` once after downloading) | CC BY-SA 4.0 |
 
 The character data in `docs/data/d` is adapted from Dong Chinese and is shared under CC BY-SA 4.0.
 
 ## What is machine-made
 
-- The pinyin over each example sentence (dictionary readings word by word; a few small words are fixed by rule).
-- "Often found together" pairs: neighbours counted in the Tatoeba sentences, kept only when frequent.
 - The "To remember it" line, composed from the parts and their roles.
 - The sound-hint rating, worked out by comparing the two readings.
 - Spoken syllables: the Serena voice (`voices.py`), each take checked by whisper and a pitch-contour test,

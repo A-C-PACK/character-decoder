@@ -6,7 +6,7 @@ Sources (all in cache/, fetched by hand, see README):
   dong/dictionary_char_*.jsonl, dong/dictionary_word_*.jsonl   Dong Chinese character wiki dump (CC BY-SA 4.0)
   graphics.txt                                                 Make Me a Hanzi stroke outlines and centre lines
   ../radicals-site/cache/dictionary.txt                        Make Me a Hanzi dictionary (radical, decomposition)
-  cmn_sentences.tsv.bz2, eng_sentences.tsv.bz2, links.tar.bz2  Tatoeba sentences and their translations (CC BY 2.0 FR)
+  wikt_examples.json                                           Wiktionary usage examples, made by wikt.py (CC BY-SA 4.0)
 """
 import bz2
 import collections
@@ -21,11 +21,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 CACHE = ROOT / "cache"
 OUT = ROOT / "build"
-sys.path.insert(0, str(CACHE / "pylib"))
-import jieba  # noqa: E402
-from pypinyin import Style, lazy_pinyin  # noqa: E402
-
-jieba.setLogLevel(60)
 N_DATA, N_STROKE = 64, 128
 
 # ---------------------------------------------------------------- pinyin
@@ -137,7 +132,8 @@ def readings(c):
 
 def is_trad_only(c):
     """A traditional form that simplified text does not use."""
-    sv = [s for s in DONG.get(c, {}).get("simpVariants") or [] if s != c]
+    sv = [s for s in DONG.get(c, {}).get("simpVariants") or [] if s != c] or [DONG.get(c, {}).get("variantOf")]
+    sv = [s for s in sv if s and s != c]
     # traditional forms carry their simplified partner's counts, so the HSK list (simplified) is what tells them apart
     return bool(sv) and stat(c, "hskLevel", 10) >= 10
 
@@ -283,200 +279,96 @@ def top_words(c, n=8):
     return out
 
 
-# ---------------------------------------------------------------- sentences
-print("loading Tatoeba…")
+# ---------------------------------------------------------------- sentences and phrases (Wiktionary)
+# wikt.py has pulled out the editors' own Mandarin examples: [text, pinyin, English, the word shown, simplified?].
+# Full sentences become the examples; short phrases ("保持清洁", to keep clean) show what a word goes with.
+print("loading Wiktionary examples…")
 TRAD_ONLY = {c for c in DONG if len(c) == 1 and is_trad_only(c)}
-T2S = {c: [s for s in DONG[c]["simpVariants"] if s != c][0] for c in TRAD_ONLY
-       if len([s for s in DONG[c]["simpVariants"] if s != c]) == 1}
+T2S = {c: [s for s in DONG[c].get("simpVariants") or [] if s != c][0] for c in TRAD_ONLY
+       if len([s for s in DONG[c].get("simpVariants") or [] if s != c]) == 1}
 HAN = re.compile(r"[㐀-鿿]")
-cmn = {}
-for line in bz2.open(CACHE / "cmn_sentences.tsv.bz2", "rt", encoding="utf8"):
-    sid, _, text = line.rstrip("\n").split("\t", 2)
-    cmn[int(sid)] = text.strip()
-eng = {}
-for line in bz2.open(CACHE / "eng_sentences.tsv.bz2", "rt", encoding="utf8"):
-    sid, _, text = line.rstrip("\n").split("\t", 2)
-    eng[int(sid)] = text.strip()
-pair = {}
-with tarfile.open(CACHE / "links.tar.bz2", "r:bz2") as tf:
-    f = tf.extractfile(tf.getmembers()[0])
-    for raw in f:
-        a, b = raw.split(b"\t")
-        a = int(a)
-        if a in cmn:
-            b = int(b)
-            if b in eng and (a not in pair or len(eng[b]) < len(eng[pair[a]])):
-                pair[a] = b
-print(len(cmn), "sentences,", len(pair), "with English")
-
-for w in WORDS:                      # so that the words the site shows are cut out whole
-    if 1 < len(w) <= 4:
-        jieba.add_word(w, freq=None)
-
-STOP = set("的了是我你他她它们在不有这那就也都和很吗呢吧啊着把被给让得地个一么什没对还又而但与及或并等里上下中过到去来能会要想说"
-           "做好大小多少人太更最再才只从向为以所其之于将已可这那些每各某本该此两几第")
-STOPW = {"这个", "那个", "什么", "我们", "你们", "他们", "她们", "一个", "自己", "可以", "因为", "所以", "如果", "已经", "没有", "不是", "就是",
-         "还是", "但是", "时候", "这些", "那些", "这样", "那样", "怎么", "为什么", "一些", "一下", "一点", "知道", "觉得", "现在", "不要",
-         "不能", "不会", "应该", "可能", "非常", "真的", "这里", "那里", "这儿", "那儿", "哪里", "一起", "一直", "不太", "得很", "东西",
-         "正在", "如何", "几个", "有没有", "多久", "哪儿", "一次", "一块", "一个人", "什么事", "任何", "出来", "起来", "有人", "很多"}
-PUNCT = re.compile(r"[，。！？、；：“”‘’（）《》…—,.!?;:\"'()\s·~～-]")
-uni, big = collections.Counter(), collections.Counter()
-by_word = collections.defaultdict(list)       # word -> [(score, sid)]
-SENT = {}
-for sid, text in cmn.items():
-    simp_native = not any(ch in TRAD_ONLY for ch in text)
-    s = "".join(T2S.get(ch, ch) for ch in text)
-    if any(ch in TRAD_ONLY for ch in s):
+to_simp = lambda t: "".join(T2S.get(ch, ch) for ch in t)
+SENT_BY, PHRASE_BY = collections.defaultdict(list), collections.defaultdict(list)
+raw = json.loads((CACHE / "wikt_examples.json").read_text(encoding="utf8"))
+raw.sort(key=lambda e: not e[4])                 # the simplified spelling first, so its twin is the one dropped
+seen_text = set()
+n_sent = n_phrase = 0
+SENT_HAS = collections.defaultdict(list)          # character -> sentences it appears in, whatever word they illustrate
+for text, roman, en, bold, _, sense in raw:
+    text, bold = to_simp(text), to_simp(bold)
+    han = HAN.findall(text)
+    if (text, bold) in seen_text or any(ch in TRAD_ONLY or ch not in CHARSET for ch in han) or not bold or not HAN.search(bold):
         continue
-    toks = [t for t in jieba.cut(s, HMM=False)]
-    prev = None
-    for t in toks:
-        if PUNCT.fullmatch(t) or not HAN.search(t):
-            prev = None
+    seen_text.add((text, bold))
+    if BAD.search(en) or len(en) > 110 or re.search(r"[A-Za-z0-9]", text) or "(" in roman:
+        continue
+    hardest = max(freq_rank(ch) for ch in han)
+    is_sentence = text[-1] in "。！？" or (roman[:1].isupper() and len(han) >= 6 and re.search(r"[.!?]$", en))
+    if is_sentence:
+        if not 3 <= len(han) <= 22 or hardest > 3500:
             continue
-        uni[t] += 1
-        if prev:
-            big[(prev, t)] += 1
-        prev = t
-    n_han = len(HAN.findall(s))
-    if not simp_native or sid not in pair or not 4 <= n_han <= 15 or re.search(r"[A-Za-z0-9「」『』\u3000]", s):
-        continue
-    en = eng[pair[sid]]
-    if BAD.search(en) or len(en) > 80 or re.search(r"\b(kill|murder|suicide|die[ds]?|dead|death|drunk|beer|wine|whisk|vodka|"
-                                                   r"alcohol|smok|cigar|gambl|naked|kiss)", en, re.I):
-        continue
-    if any(ch not in CHARSET for ch in HAN.findall(s)):
-        continue
-    # the translations are linked by volunteers and some are loose: drop a pair when only one side says "not"
-    neg_zh = bool(re.search(r"[不没别未无非]|甭", s))
-    neg_en = bool(re.search(r"\b(not|no|never|nothing|nobody|none|neither|nor|without|cannot|can't|won't|un\w+|hardly|few|little)\b|n't", en, re.I))
-    if neg_zh != neg_en:
-        continue
-    hardest = max(freq_rank(ch) for ch in HAN.findall(s))
-    if hardest > 3000:
-        continue
-    SENT[sid] = (s, toks, en)
-    score = hardest / 300 + abs(n_han - 8) * 0.6
-    for t in set(toks):
-        if HAN.search(t):
-            by_word[t].append((score, sid))
-for w in by_word:
-    by_word[w].sort()
-print(len(SENT), "usable example sentences")
-
-PUNCT_PY = {"，": ",", "。": ".", "！": "!", "？": "?", "、": ",", "；": ";", "：": ":", "“": "“", "”": "”", "‘": "‘",
-            "’": "’", "（": "(", "）": ")", "…": "…", "—": "—", "《": "“", "》": "”"}
-
-
-def tok_pinyin(t):
-    if len(t) > 1:
-        info = word_info(t)
-        if info:
-            return info[0]
-    if len(t) == 1 and readings(t) and readings(t)[0][1] >= 90:
-        return readings(t)[0][0]
-    return "".join(lazy_pinyin(t, style=Style.TONE))
-
-
-PRONOUN = {"我", "你", "他", "她", "它", "我们", "你们", "他们", "她们", "您", "咱们", "谁"}
-
-
-def sent_pinyin(toks):
-    out, prev = "", None
-    for i, t in enumerate(toks):
-        nxt = toks[i + 1] if i + 1 < len(toks) else ""
-        if not HAN.search(t):
-            out = out.rstrip() + PUNCT_PY.get(t, t) + " "
-            prev = None
+        # the first senses listed are the everyday ones
+        score = hardest / 400 + abs(len(han) - 9) * 0.5 + min(sense, 6) * 0.5
+        SENT_BY[bold].append((score, text, roman, en))
+        for ch in set(han):
+            SENT_HAS[ch].append((score, text, roman, en))
+        n_sent += 1
+    else:
+        # a phrase that is only the word itself, or a dictionary word, adds nothing
+        if not 3 <= len(han) <= 10 or text == bold or text in WORDS or hardest > 4000 or roman[:1].isupper():
             continue
-        # the little words whose reading depends on their job in the sentence
-        if t == "地" and prev and len(prev) >= 2:
-            py = "de"
-        elif t == "得" and prev:
-            py = "děi" if prev in PRONOUN else "de"
-        elif t == "着" and prev:
-            py = "zhe"
-        elif t == "穿着" and HAN.search(nxt) and nxt != "的":
-            py = "chuānzhe"
-        else:
-            py = tok_pinyin(t)
-        out += py + " "
-        prev = t
-    out = re.sub(r"\s+([,.!?;:”’)])", r"\1", out).strip()
-    out = re.sub(r"([“‘(])\s+", r"\1", out)
-    return out[:1].upper() + out[1:]
+        PHRASE_BY[bold].append((hardest / 400 + len(han) * 0.3 + min(sense, 6) * 0.5, text, roman, en))
+        n_phrase += 1
+for d in (SENT_BY, PHRASE_BY, SENT_HAS):
+    for k in d:
+        d[k].sort()
+print(n_sent, "sentences and", n_phrase, "phrases from Wiktionary")
+
+used_text = collections.Counter()
 
 
-used_sent = collections.Counter()
-
-
-def examples(c, words, n=3):
+def choose(c, words, shelf, n):
+    """Up to n items for this character: one for each of its words in turn, the character's own entry first."""
+    targets = [c] + [w[0] for w in words if w[0] != c]
     out, seen = [], set()
-    # the character alone only when it really is used alone; otherwise the cut-up sentences give odd examples
-    targets = [w[0] for w in words[:6] if len(w[0]) > 1 or w[4] >= 25]
-    if c not in targets and not targets:
-        targets.append(c)
-    for w in targets:
-        best = None
-        for score, sid in by_word.get(w, [])[:40]:
-            if sid in seen:
-                continue
-            sc = score + used_sent[sid] * 1.5
-            if best is None or sc < best[0]:
-                best = (sc, sid)
-        if best:
-            sid = best[1]
-            seen.add(sid)
-            used_sent[sid] += 1
-            s, toks, en = SENT[sid]
-            out.append([s, sent_pinyin(toks), en, w])
-        if len(out) >= n:
-            break
+    for rnd in range(2):                    # a second pass lets a word give another when the rest have none
+        for w in targets:
+            best = None
+            for score, text, roman, en in shelf.get(w, [])[:30]:
+                if text in seen or c not in text:
+                    continue
+                sc = score + used_text[text] * 1.5
+                if best is None or sc < best[0]:
+                    best = (sc, text, roman, en)
+            if best:
+                seen.add(best[1])
+                used_text[best[1]] += 1
+                out.append([best[1], best[2], best[3]])
+            if len(out) >= n:
+                return out
     return out
 
 
-TOTAL = sum(uni.values())
-BIG_BY = collections.defaultdict(list)
-for (a, b), k in big.items():
-    if k >= 4:
-        BIG_BY[a].append((a, b, k))
-        BIG_BY[b].append((a, b, k))
-
-
-def partners(c, words, n=5):
-    """Words that often stand right next to this character's words."""
-    cands = []
-    if c in STOP:
-        return []
-    heads = [w[0] for w in words[:6]]
-    for h in heads:
-        if uni[h] < 5:
-            continue
-        for a, b, k in BIG_BY.get(h, ()):
-            other = b if a == h else a
-            if other in STOPW or other == h or not 2 <= len(other) <= 3 or not all(ch in CHARSET for ch in other):
-                continue
-            if a + b in WORDS:       # a pair the dictionary lists as a word belongs with the words, not here
-                continue
-            info = word_info(other)
-            if not info:
-                continue
-            g = info[1]
-            pmi = math.log(k * TOTAL / (uni[a] * uni[b]))
-            if pmi < 3.2 or k < 6:
-                continue
-            cands.append((k * pmi, a, b, h, g))
-    cands.sort(reverse=True)
-    out, seen = [], set()
-    for _, a, b, h, g in cands:
-        if a + b in seen:
-            continue
-        seen.add(a + b)
-        other = b if a == h else a
-        out.append([a, b, tok_pinyin(a) + " " + tok_pinyin(b), other, g.split(";")[0]])
-        if len(out) >= n:
-            break
+def examples(c, words):
+    out = choose(c, words, SENT_BY, 3)
+    if len(out) < 2:
+        # nothing written for this character or its words: sentences written for other words that happen to use it,
+        # those that use it inside one of its common words first
+        have = {o[0] for o in out}
+        common = [w[0] for w in words]
+        pool = sorted(SENT_HAS.get(c, []), key=lambda t: (not any(w in t[1] for w in common if len(w) > 1), t[0] + used_text[t[1]] * 1.5))
+        for score, text, roman, en in pool:
+            if text not in have:
+                have.add(text)
+                used_text[text] += 1
+                out.append([text, roman, en])
+            if len(out) >= 2:
+                break
     return out
+
+
+
+partners = lambda c, words: choose(c, words, PHRASE_BY, 5)
 
 
 # ---------------------------------------------------------------- entries
@@ -599,6 +491,8 @@ for n, c in enumerate(CHARS):
             e["rad"].append(SIXTY[rad][0])
     tv = [t for t in d.get("tradVariants") or [] if t != c]
     sv = [s for s in d.get("simpVariants") or [] if s != c]
+    if not sv and d.get("variantOf") and d["variantOf"] != c and is_trad_only(c):
+        sv = [d["variantOf"]]
     if tv:
         e["tr"] = tv[:3]
     if sv:

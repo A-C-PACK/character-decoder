@@ -160,7 +160,7 @@ function decodeBody(ch, e) {
     e.rk && !e.to ? el("li", "No. ", el("strong", e.rk.toLocaleString("en")), " by use") : null,
     el("li", el("strong", String(e.n)), e.n === 1 ? " stroke" : " strokes"),
     (e.tr || []).map((t) => el("li", "Traditional ", known(t) ? el("a", { href: hashOf(t) }, zh(t)) : zh(t))),
-    e.to ? (e.sp || []).map((t) => el("li", "Simplified ", known(t) ? el("a", { href: hashOf(t) }, zh(t)) : zh(t))) : null);
+    e.to ? (e.sp || []).map((t) => el("li", "Now written ", known(t) ? el("a", { href: hashOf(t) }, zh(t)) : zh(t))) : null);
   const colours = [...new Set(parts.filter((p) => p.s).map((p) => p.role))];
   const legend = colours.length ? el("ul.legend", colours.map((r) => el("li.r-" + r, el("i"), { meaning: "meaning", sound: "sound", iconic: "picture", other: "other" }[r]))) : null;
   const hero = el("aside.dec-hero",
@@ -192,9 +192,9 @@ function decodeBody(ch, e) {
   const body = el("div.dec-body", build);
 
   if (e.to && e.sp) {
-    body.append(el("section.sec", el("p.eyebrow", "Traditional form"),
-      el("p.sub", "This is the traditional way of writing ", (e.sp || []).map((t) => (known(t) ? el("a.inline-zh", { href: hashOf(t) }, zh(t)) : zh(t))),
-        ". Words and example sentences are on the simplified character's page.")));
+    body.append(el("section.sec", el("p.eyebrow", "Traditional or older form"),
+      el("p.sub", "This is a traditional or older way of writing ", (e.sp || []).map((t) => (known(t) ? el("a.inline-zh", { href: hashOf(t) }, zh(t)) : zh(t))),
+        ". Words and example sentences are on that character's page.")));
   }
 
   // ---- words
@@ -212,9 +212,10 @@ function decodeBody(ch, e) {
     const sec = el("section.sec", el("p.eyebrow", "How it is used"));
     if (e.co) {
       sec.append(el("h3", "Often found together"),
-        el("ul.pairs", e.co.map(([a, b, p, other, g]) => el("li.pair",
-          el("span.pair-zh", tappable(a, ch), el("span.plus", "+"), tappable(b, ch), listenText(a + b)),
-          el("span.pair-info", py(p), el("span.dim", " · ", zh(other), ` ${g}`))))));
+        el("ul.pairs", e.co.map(([t, p, en]) => el("li.pair",
+          el("span.pair-zh", tappable(t, ch), listenText(t)),
+          el("span.pair-info", py(p)),
+          el("span.pair-en", en)))));
     }
     if (e.x) {
       sec.append(el("h3", "In a sentence"),
@@ -223,6 +224,7 @@ function decodeBody(ch, e) {
           el("div.ex-py", py(p)),
           el("div.ex-en", en)))));
     }
+    sec.append(el("p.source", "Examples from Wiktionary"));
     body.append(sec);
   }
 

@@ -93,6 +93,7 @@ a.part-glyph:hover { background: color-mix(in srgb, var(--rc) 24%, var(--bg)); }
 .pair-zh { display: flex; align-items: center; gap: 6px; font-size: 1.4rem; }
 .plus { color: var(--dim); font-size: 1rem; }
 .pair-info { font-size: 0.86rem; color: var(--muted); }
+.pair-en { font-family: var(--f-read); font-size: 0.92rem; max-width: 34ch; }
 .examples { display: flex; flex-direction: column; gap: 18px; }
 .example { display: flex; flex-direction: column; gap: 2px; padding-left: 16px; border-left: 2px solid var(--line); }
 .ex-zh { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 1.4rem; line-height: 1.4; }

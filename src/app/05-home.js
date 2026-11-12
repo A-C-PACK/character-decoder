@@ -56,7 +56,7 @@ function homeView() {
       el("li", el("h3", el("i.dot.r-meaning"), "The meaning part"), el("p", "Usually the radical. It tells you what kind of thing the character is about: water, speech, a hand, the heart.")),
       el("li", el("h3", el("i.dot.r-sound"), "The sound part"), el("p", "The other half hints at how to say it. A four-bar meter shows how far you can trust the hint today.")),
       el("li", el("h3", "Words"), el("p", "The everyday words the character appears in, most used first, with pinyin and HSK level.")),
-      el("li", el("h3", "Company it keeps"), el("p", "Words that often stand next to it, and short sentences that show it at work.")),
+      el("li", el("h3", "Company it keeps"), el("p", "Short phrases that show what it goes with, and whole sentences that show it at work.")),
       el("li", el("h3", "Where it comes from"), el("p", "What the people who designed it were picturing, and a line to remember it by.")))));
 
   const dumpDate = INDEX.dump || "";
@@ -67,8 +67,9 @@ function homeView() {
       el("p", "Parts, origin notes and word lists come from the ", el("a.out", { href: "https://www.dong-chinese.com/wiki", target: "_blank", rel: "noopener" }, "Dong Chinese character wiki"),
         dumpDate ? ` (data of ${dumpDate})` : "", ", shared under the Creative Commons Attribution-ShareAlike 4.0 licence. This site's character data is shared under the same licence."),
       el("p", "Stroke outlines, stroke order and dictionary radicals come from ", el("a.out", { href: "https://github.com/skishore/makemeahanzi", target: "_blank", rel: "noopener" }, "Make Me a Hanzi"),
-        ". Word meanings come from CC-CEDICT. Example sentences and their translations come from ", el("a.out", { href: "https://tatoeba.org", target: "_blank", rel: "noopener" }, "Tatoeba"),
-        " (CC BY 2.0 FR); volunteers wrote them, and the pinyin above each one was added by machine, so the odd tone may be off."),
+        ". Word meanings come from CC-CEDICT. Example sentences and phrases, with their pinyin and translations, come from ",
+        el("a.out", { href: "https://en.wiktionary.org/wiki/Wiktionary:Main_Page", target: "_blank", rel: "noopener" }, "Wiktionary"),
+        " (CC BY-SA 4.0), where editors write them to show one word at work."),
       el("p", "Sister sites: ", el("a.out", { href: SIXTY_URL, target: "_blank", rel: "noopener" }, "Sixty Radicals"), ", ",
         el("a.out", { href: TONES_URL, target: "_blank", rel: "noopener" }, "Mandarin Tone Trainer"), " and ",
         el("a.out", { href: "https://a-c-pack.github.io/pinyin-starter/", target: "_blank", rel: "noopener" }, "Pinyin Starter"), "."))));
