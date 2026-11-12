@@ -1,0 +1,46 @@
+/* ---- home: the lookup box on the left, the drawing pad on the right */
+.hero { background: radial-gradient(ellipse at 70% 30%, var(--bg2), var(--bg) 70%); border-bottom: 1px solid var(--line); }
+.hero-in { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: clamp(28px, 5vw, 64px); align-items: start;
+  padding-top: clamp(32px, 6vw, 72px); padding-bottom: clamp(36px, 6vw, 72px); }
+.hero-text { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.hero h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(2.6rem, 6.6vw, 4.8rem); line-height: 1.02; letter-spacing: 0.01em; text-wrap: balance; }
+.lede { font-family: var(--f-read); font-size: clamp(1rem, 1.5vw, 1.14rem); color: var(--muted); max-width: 52ch; }
+
+.lookup { display: flex; flex-direction: column; gap: 10px; }
+.lookup textarea { width: 100%; padding: 14px 18px; border-radius: 18px; border: 2px solid var(--line); background: var(--panel); color: var(--ink);
+  font-family: var(--f-zh); font-size: 1.5rem; line-height: 1.4; resize: vertical; min-height: 64px; }
+.lookup textarea::placeholder { color: var(--dim); }
+.lookup textarea:focus { outline: none; border-color: var(--ink); }
+.lookup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.sample, .try { display: flex; flex-direction: column; gap: 10px; }
+
+.draw-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pad { display: flex; flex-direction: column; gap: 12px; }
+.pad-box { position: relative; width: 100%; max-width: 420px; aspect-ratio: 1; border-radius: 28px; border: 3px solid var(--line); background-color: var(--panel);
+  /* the practice-paper cross that Chinese schoolchildren write in */
+  background-image: linear-gradient(var(--line), var(--line)), linear-gradient(var(--line), var(--line));
+  background-size: 1px 86%, 86% 1px; background-position: center; background-repeat: no-repeat; overflow: hidden; }
+.pad-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.pad-hint { position: absolute; inset: auto 0 18px; text-align: center; color: var(--dim); font-weight: 500; pointer-events: none; }
+.pad-tools { display: flex; gap: 10px; }
+.guesses { min-height: 48px; }
+.guess-label { color: var(--muted); font-weight: 700; font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase; margin-right: 4px; }
+
+/* ---- bands */
+.band { padding: clamp(44px, 7vw, 80px) 0; scroll-margin-top: var(--bar-h); }
+.band h2 { margin: 10px 0 14px; }
+#what { background: linear-gradient(180deg, var(--bg), var(--bg2) 60%, var(--bg)); }
+.five { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 28px 32px; margin-top: 26px; counter-reset: five; }
+.five li { counter-increment: five; border-top: 2px solid var(--line); padding-top: 14px; }
+.five li::before { content: counter(five); font-family: var(--f-display); font-size: 1.5rem; color: var(--dim); }
+.five h3 { display: flex; align-items: center; gap: 8px; margin: 4px 0 6px; }
+.five p { color: var(--muted); font-family: var(--f-read); font-size: 0.94rem; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.dot.r-meaning { background: var(--c-meaning); }
+.dot.r-sound { background: var(--c-sound); }
+.credits { display: flex; flex-direction: column; gap: 14px; max-width: 70ch; color: var(--muted); font-family: var(--f-read); font-size: 0.95rem; }
+
+@media (max-width: 860px) {
+  .hero-in { grid-template-columns: minmax(0, 1fr); }
+  .pad-box { max-width: 360px; }
+}

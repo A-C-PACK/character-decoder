@@ -1,0 +1,8 @@
+cache/
+build/
+dist/
+shots/
+voices/raw/
+voices/run.log
+src/audio/wav/
+__pycache__/
