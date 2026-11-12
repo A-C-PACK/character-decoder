@@ -103,13 +103,21 @@ a.kid-glyph:hover { background: color-mix(in srgb, var(--rc) 24%, var(--bg)); }
 .tap a.now { color: var(--red); }
 
 .words { display: flex; flex-direction: column; }
-.word { display: grid; grid-template-columns: minmax(96px, auto) minmax(0, 1fr) auto; gap: 4px 18px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.word { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 14px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
 .word:last-child { border-bottom: 1px solid var(--line); }
-.word-zh { display: flex; align-items: center; gap: 10px; font-size: 1.6rem; line-height: 1.2; white-space: nowrap; }
+/* a word opens its own page; the chevron says so */
+.word-main { display: grid; grid-template-columns: minmax(96px, auto) minmax(0, 1fr) 16px; gap: 4px 18px; align-items: center; padding: 8px 10px; margin-left: -10px;
+  border-radius: 14px; min-width: 0; }
+a.word-main:hover { background: var(--panel); }
+a.word-main::after { content: "›"; color: var(--dim); font-size: 1.6rem; line-height: 1; }
+a.word-main:hover::after { color: var(--ink); }
+.word-zh { display: flex; align-items: center; font-size: 1.6rem; line-height: 1.2; white-space: nowrap; }
+.word-zh .now { color: var(--red); }
 .word-info { display: flex; flex-direction: column; min-width: 0; }
 .word-info .py { color: var(--muted); font-size: 0.92rem; }
 .word-gloss { font-family: var(--f-read); font-size: 0.97rem; overflow-wrap: anywhere; }
 .hsk { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.word .hsk { min-width: 76px; text-align: center; }
 .hsk.none { border: 0; padding: 0; }
 
 .pairs { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -149,6 +157,7 @@ a.kid-glyph:hover { background: color-mix(in srgb, var(--rc) 24%, var(--bg)); }
   .kid::before, .kid:last-child::after { left: -18px; }
   .kid::before { width: 17px; }
   .kid-glyph { width: 44px; height: 44px; font-size: 1.5rem; }
-  .word { grid-template-columns: minmax(0, 1fr) auto; }
-  .word-info { grid-column: 1 / -1; grid-row: 2; }
+  .word-main { grid-template-columns: minmax(0, 1fr) 14px; gap: 2px 10px; }
+  .word-info { grid-column: 1; grid-row: 2; }
+  a.word-main::after { grid-column: 2; grid-row: 1 / span 2; }
 }

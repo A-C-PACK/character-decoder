@@ -224,10 +224,15 @@ function decodeBody(ch, e) {
   if (e.w) {
     body.append(el("section.sec",
       el("p.eyebrow", "Words it is used in"),
-      el("ul.words", e.w.map(([w, p, g, hsk]) => el("li.word",
-        el("div.word-zh", tappable(w, ch), listenText(w)),
-        el("div.word-info", py(p), el("span.word-gloss", g)),
-        hsk ? el("span.hsk", hsk >= 7 ? "HSK 7–9" : `HSK ${hsk}`) : el("span.hsk.none", ""))))));
+      el("ul.words", e.w.map(([w, p, g, hsk]) => {
+        const single = [...w].length === 1;
+        const inner = [el("span.word-zh", { lang: "zh-Hans" }, [...w].map((c) => el("span" + (c === ch ? ".now" : ""), c))),
+          el("span.word-info", py(p), el("span.word-gloss", g))];
+        return el("li.word",
+          single ? el("span.word-main", inner) : el("a.word-main.go", { href: wordHash(w), "aria-label": `${w}, ${p}, ${g}. Open the word` }, inner),
+          listenText(w),
+          hsk ? el("span.hsk", hsk >= 7 ? "HSK 7–9" : `HSK ${hsk}`) : el("span.hsk.none", ""));
+      }))));
   }
 
   // ---- what it goes with

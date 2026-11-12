@@ -1,0 +1,36 @@
+/* ---- one word: the word large, its meanings, then the characters it is made of side by side */
+.wordpage .wrap { max-width: 880px; }
+.word-body { display: flex; flex-direction: column; gap: 44px; padding-top: 18px; }
+.word-head { display: flex; flex-direction: column; gap: 12px; }
+.word-big { font-family: var(--f-zh); font-weight: 500; font-size: clamp(4rem, 14vw, 6.5rem); line-height: 1.05; letter-spacing: 0.04em; }
+.word-head .readings { gap: 10px 14px; }
+.word-defs { list-style: decimal; padding-left: 1.4em; display: flex; flex-direction: column; gap: 4px; font-family: var(--f-read); font-size: 1.08rem; max-width: 60ch; }
+.word-defs li::marker { color: var(--dim); }
+
+.wchars { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.wchar { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 18px; align-items: start; height: 100%; padding: 18px; border-radius: 22px;
+  background: var(--panel); border: 2px solid var(--line); transition: border-color 0.15s, transform 0.15s; }
+.wchar:hover { border-color: var(--muted); transform: translateY(-2px); }
+.wchar-glyph { width: 112px; height: 112px; padding: 10px; border-radius: 18px; background: var(--bg);
+  background-image: linear-gradient(var(--line), var(--line)), linear-gradient(var(--line), var(--line));
+  background-size: 1px 80%, 80% 1px; background-position: center; background-repeat: no-repeat; font-size: 4.5rem; display: grid; place-items: center; }
+.wchar-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.wchar-top { display: flex; align-items: center; gap: 8px; font-size: 1.4rem; }
+.wchar-gloss { font-size: 1.1rem; overflow-wrap: anywhere; }
+.wchar-kind { color: var(--muted); font-size: 0.86rem; }
+.wchar-parts { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; font-size: 0.9rem; font-weight: 500; }
+.wchar-parts .zh { font-size: 1.2em; }
+.wchar-parts .r-meaning { color: var(--c-meaning); }
+.wchar-parts .r-sound { color: var(--c-sound); }
+.wchar-parts .r-iconic { color: var(--c-iconic); }
+.wchar-parts .r-other { color: var(--c-other); }
+.wchar-go { margin-top: auto; padding-top: 8px; font-weight: 700; font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.wchar-go::after { content: " ›"; }
+.wchar:hover .wchar-go { color: var(--ink); }
+.tap .now { color: var(--red); }
+.ex-tag { margin-top: 2px; font-size: 0.78rem; color: var(--dim); }
+
+@media (max-width: 520px) {
+  .wchar { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; padding: 14px; }
+  .wchar-glyph { width: 84px; height: 84px; font-size: 3.4rem; }
+}

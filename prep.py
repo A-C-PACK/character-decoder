@@ -516,6 +516,73 @@ for n, c in enumerate(CHARS):
     if n % 2000 == 0:
         print(" ", n)
 
+# ---------------------------------------------------------------- word pages
+# Every word in a character's word list gets a page: its readings syllable by syllable, its meanings, and sentences.
+N_WORD = 64
+
+
+def word_chunk(w):
+    """Must match wordChunk() in src/app/04b-word.js."""
+    h = 0
+    for ch in w:
+        h = (h * 31 + ord(ch)) % 9973
+    return h % N_WORD
+
+
+def word_page(w):
+    r = WORDS.get(w)
+    if not r:
+        return None
+    items = [i for i in r.get("items") or [] if i.get("pinyin") and i.get("definitions")]
+    low = [i for i in items if not ZW.sub("", i["pinyin"])[:1].isupper()]
+    if not low:
+        return None
+    it = low[0]
+    syl = ZW.sub("", it["pinyin"]).split()
+    if len(syl) != len(w):
+        syl = []
+    defs = []
+    for d in it["definitions"]:
+        d = clean_def(d)
+        if d and not re.match(r"(variant of|old variant|see |erhua variant|also written|surname |CL:|also pr\.|Taiwan pr\.)", d) and d not in defs:
+            defs.append(d)
+    if not defs or any(BAD.search(d) for d in it["definitions"]):
+        return None
+    page = {"p": word_info(w)[0] if word_info(w) else "".join(syl), "s": syl, "d": defs[:6]}
+    hsk = (r.get("statistics") or {}).get("hskLevel")
+    if hsk and hsk < 10:
+        page["hsk"] = hsk
+    # sentences: written on Wiktionary for this word, then other Wiktionary sentences that use it, then this site's own
+    xs, seen = [], set()
+    for _, text, roman, en in SENT_BY.get(w, []):
+        if text not in seen and len(xs) < 3:
+            seen.add(text)
+            xs.append([text, roman, en])
+    if len(xs) < 2:
+        for _, text, roman, en in SENT_HAS.get(w[0], []):
+            if w in text and text not in seen and len(xs) < 3:
+                seen.add(text)
+                xs.append([text, roman, en])
+    if len(xs) < 2:
+        for c in dict.fromkeys(w):
+            for text, roman, en in OWN.get(c, []):
+                if w in text and text not in seen and len(xs) < 3:
+                    seen.add(text)
+                    xs.append([text, roman, en, 1])
+    if xs:
+        page["x"] = xs
+    return page
+
+
+WORDPAGES = {}
+for c, e in ENTRIES.items():
+    for w in e.get("w", []):
+        if len(w[0]) > 1 and w[0] not in WORDPAGES:
+            page = word_page(w[0])
+            if page:
+                WORDPAGES[w[0]] = page
+print(len(WORDPAGES), "word pages,", sum(1 for p in WORDPAGES.values() if p.get("x")), "with sentences")
+
 # ---------------------------------------------------------------- drawing index
 # Each stroke's centre line, cut to five evenly spaced points, in a box that hugs the character.
 B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
@@ -549,7 +616,7 @@ def rec_code(c):
 
 
 # ---------------------------------------------------------------- write
-for sub in ("d", "s"):
+for sub in ("d", "s", "w"):
     (OUT / sub).mkdir(parents=True, exist_ok=True)
     for old in (OUT / sub).glob("*.json"):
         old.unlink()
@@ -566,7 +633,12 @@ for k, v in chunks.items():
     (OUT / "s" / f"{k}.json").write_text(dump(v), encoding="utf8")
 (OUT / "rec.txt").write_text("\n".join(c + rec_code(c) for c in CHARS), encoding="utf8")
 # what the page itself carries: the characters in order of use, and the traditional forms' simplified partners
-index = {"chars": "".join(CHARS), "nData": N_DATA, "nStroke": N_STROKE,
+chunks = collections.defaultdict(dict)
+for w, p in WORDPAGES.items():
+    chunks[word_chunk(w)][w] = p
+for k in range(N_WORD):
+    (OUT / "w" / f"{k}.json").write_text(dump(chunks.get(k, {})), encoding="utf8")
+index = {"chars": "".join(CHARS), "nData": N_DATA, "nStroke": N_STROKE, "nWord": N_WORD,
          "dump": Path(sorted(glob.glob(str(CACHE / "dong/dictionary_char_*.jsonl")))[-1]).stem.split("_")[-1]}
 (OUT / "index.json").write_text(dump(index), encoding="utf8")
 # every reading a clip is wanted for

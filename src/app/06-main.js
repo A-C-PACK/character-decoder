@@ -6,6 +6,11 @@ function route() {
     const ch = String.fromCodePoint(parseInt(m[1], 16));
     return { kind: "decode", key: h, make: () => decodeView(ch) };
   }
+  const w = h.match(/^w-([0-9a-f]{4,6}(?:-[0-9a-f]{4,6})+)$/i);
+  if (w) {
+    const word = w[1].split("-").map((x) => String.fromCodePoint(parseInt(x, 16))).join("");
+    return { kind: "word", key: h, make: () => wordView(word) };
+  }
   return { kind: "home", key: "home", make: homeView, anchor: ["what", "about", "lookup"].includes(h) ? h : null };
 }
 

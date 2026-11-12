@@ -64,6 +64,7 @@ def main():
         shutil.rmtree(data)
     shutil.copytree(BUILD / "d", data / "d")
     shutil.copytree(BUILD / "s", data / "s")
+    shutil.copytree(BUILD / "w", data / "w")
     shutil.copy(BUILD / "rec.txt", data / "rec.txt")
     (data / "a").mkdir()
     audio = collections.defaultdict(dict)

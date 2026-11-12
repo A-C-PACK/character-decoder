@@ -13,7 +13,7 @@ shape comes from. A sister site of Sixty Radicals, the Mandarin Tone Trainer and
     ~/tools/node/bin/node tools/try.js        # draws, pastes and opens 200 pages in a headless browser
     ~/tools/node/bin/node tools/rectest.js    # how well the drawing pad recognises shaky copies
 
-`docs/` is the whole site: `index.html` plus `data/` (64 files of character entries, 128 of stroke outlines,
+`docs/` is the whole site: `index.html` plus `data/` (64 files of character entries, 64 of word pages, 128 of stroke outlines,
 32 of spoken syllables and `rec.txt` for the drawing pad). The page fetches these a file at a time, so it has to be
 served over http; opening `docs/index.html` from disk will not load any character.
 
